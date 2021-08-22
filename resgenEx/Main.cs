@@ -14,20 +14,13 @@
 namespace resgenEx
 {
 
-    using System;
-    using System.Globalization;
-    using System.Text;
-    using System.IO;
-    using System.Collections;
-    using System.Resources;
-    using System.Reflection;
-    using System.Xml;
-
     using resgenEx.FileFormats;
-
-    // We don't need to keep mono compatibility, so I'm referencing Windows.Forms directly
-    // to save having to do everything through reflection. - Treer
-    using System.Windows.Forms;
+    using System;
+    using System.Collections;
+    using System.IO;
+    using System.Reflection;
+    using System.Resources;
+    using System.Xml;
 
     class ResGen
     {
@@ -35,8 +28,10 @@ namespace resgenEx
         internal const string cProgramNameFull = "Extended Mono Resource Generator";
         internal const string cOriginalMessageComment_Prefix = "#. Original message text: ";
 
-        internal static string ProgramVersion {
-            get {
+        internal static string ProgramVersion
+        {
+            get
+            {
                 Version assemblyVersion = Assembly.GetAssembly(typeof(ResGen)).GetName().Version;
 
                 string result = String.Format(
@@ -93,7 +88,8 @@ Options:
         static IResourceReader GetReader(Stream stream, string name, bool useSourcePath, Options options)
         {
             string format = Path.GetExtension(name);
-            switch (format.ToLower(System.Globalization.CultureInfo.InvariantCulture)) {
+            switch (format.ToLower(System.Globalization.CultureInfo.InvariantCulture))
+            {
                 case ".po":
                 case ".pot":
                     return new PoResourceReader(stream, options);
@@ -109,10 +105,12 @@ Options:
                 case ".resx":
                     IResourceReader reader = new ResXResourceReader(stream);
 
-                    if (useSourcePath) { // only possible on 2.0 profile, or higher
+                    if (useSourcePath)
+                    { // only possible on 2.0 profile, or higher
                         PropertyInfo p = reader.GetType().GetProperty("BasePath",
                             BindingFlags.Public | BindingFlags.Instance);
-                        if (p != null && p.CanWrite) {
+                        if (p != null && p.CanWrite)
+                        {
                             p.SetValue(reader, Path.GetDirectoryName(name), null);
                         }
                     }
@@ -130,7 +128,8 @@ Options:
             string sourceResource = sourceFile ?? String.Empty;
             sourceResource = "\\" + sourceResource.Substring(Path.GetPathRoot(sourceResource).Length); // remove the drive name from the path, as it's computer specific
 
-            switch (format.ToLower()) {
+            switch (format.ToLower())
+            {
                 case ".isl":
                     return new IslResourceWriter(stream, options, sourceResource);
                 case ".po":
@@ -158,7 +157,8 @@ Options:
             IResourceReader reader = null;
             IResourceWriter writer = null;
 
-            try {
+            try
+            {
                 source = new FileStream(sname, FileMode.Open, FileAccess.Read);
                 reader = GetReader(source, sname, useSourcePath, options);
 
@@ -166,25 +166,36 @@ Options:
                 writer = GetWriter(dest, dname, options, sname);
 
                 int rescount = 0;
-                foreach (DictionaryEntry e in reader) {
+                foreach (DictionaryEntry e in reader)
+                {
                     rescount++;
                     object val = e.Value;
-                    if (val is string) {
+                    if (val is string)
+                    {
                         writer.AddResource((string)e.Key, (string)e.Value);
-                    } else {
+                    }
+                    else
+                    {
                         // refactoring to do: We should probably wrap the ResXResourceWriter, and replace our use of IResourceWriter with a ResourceItem based interface
                         ResourceItem item = val as ResourceItem;
-                        try {
-                            if (writer is ResXResourceWriter && item != null) {
+                        try
+                        {
+                            if (writer is ResXResourceWriter && item != null)
+                            {
                                 // only write if the ResourceItem can be cast to ResXDataNode
                                 ResXDataNode dataNode = ((ResourceItem)val).ToResXDataNode();
                                 if (dataNode != null) writer.AddResource((string)e.Key, dataNode);
-                                
-                            } else {
+
+                            }
+                            else
+                            {
                                 writer.AddResource((string)e.Key, e.Value);
                             }
-                        } catch {
-                            if (item != null && item.Metadata_OriginalSourceLine > 0) {
+                        }
+                        catch
+                        {
+                            if (item != null && item.Metadata_OriginalSourceLine > 0)
+                            {
                                 Console.WriteLine("Line: {0}", item.Metadata_OriginalSourceLine);
                             }
                             throw;
@@ -197,14 +208,17 @@ Options:
                 reader.Close();
                 writer.Close();
                 Console.WriteLine("Writing resource file...  Done.");
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Console.WriteLine("Error: {0}", e.Message);
                 Exception inner = e.InnerException;
 
                 // under 2.0 ResXResourceReader can wrap an exception into an XmlException
                 // and this hides some helpful message from the original exception
                 XmlException xex = (inner as XmlException);
-                if (xex != null) {
+                if (xex != null)
+                {
                     // message is identical to the inner exception (from MWF ResXResourceReader)
                     Console.WriteLine("Position: Line {0}, Column {1}.", xex.LineNumber, xex.LinePosition);
                     inner = inner.InnerException;
@@ -227,9 +241,12 @@ Options:
                 // since we're not first reading all entries in source, we may get a
                 // read failure after we're started writing to the destination file
                 // and leave behind a broken resources file, so remove it here
-                try {
+                try
+                {
                     File.Delete(dname);
-                } catch {
+                }
+                catch
+                {
                 }
                 return 1;
             }
@@ -243,8 +260,10 @@ Options:
             ArrayList inputFiles = new ArrayList();
             Options options = new Options(CommentOptions.writeFullComments, false);
 
-            for (int i = 0; i < args.Length; i++) {
-                switch (args[i].ToLower()) {
+            for (int i = 0; i < args.Length; i++)
+            {
+                switch (args[i].ToLower())
+                {
                     case "-h":
                     case "/h":
                     case "-?":
@@ -273,7 +292,8 @@ Options:
                         // to resolve relative file paths, use the directory of the resource 
                         // file as current directory.
 
-                        if (compileMultiple) {
+                        if (compileMultiple)
+                        {
                             // the /usesourcepath option should not appear after the
                             // /compile switch on the command-line
                             Console.WriteLine("ResGen : error RG0000: Invalid "
@@ -289,7 +309,8 @@ Options:
                         // don't export the rawComments from the source file to the destination 
                         // format, and don't include automatically created comments.
 
-                        if (options.Comments == CommentOptions.writeSourceCommentsOnly) {
+                        if (options.Comments == CommentOptions.writeSourceCommentsOnly)
+                        {
                             // the /nocomments option should not appear after the
                             // /sourcecommentsonly switch on the command-line
                             Console.WriteLine("ResGen : error RG0000: Invalid command line syntax.  Switch: \"/nocomments\" cannot be used with \"/sourcecommentsonly\"");
@@ -303,7 +324,8 @@ Options:
                         // only export comments to the destination format that existed in the
                         // source file. Do not include automatically created comments.
 
-                        if (options.Comments == CommentOptions.writeNoComments) {
+                        if (options.Comments == CommentOptions.writeNoComments)
+                        {
                             // the /nocomments option should not appear after the
                             // /sourcecommentsonly switch on the command-line
                             Console.WriteLine("ResGen : error RG0000: Invalid command line syntax.  Switch: \"/nocomments\" cannot be used with \"/sourcecommentsonly\"");
@@ -322,58 +344,82 @@ Options:
                         break;
 
                     default:
-                        if (!IsFileArgument(args[i])) {
+                        if (!IsFileArgument(args[i]))
+                        {
                             Usage();
                             return 1;
                         }
 
-                        ResourceInfo resInf = new ResourceInfo();
-                        if (compileMultiple) {
-                            string[] pair = args[i].Split(',');
-                            switch (pair.Length) {
-                                case 1:
-                                    resInf.InputFile = Path.GetFullPath(pair[0]);
-                                    resInf.OutputFile = Path.ChangeExtension(resInf.InputFile,
-                                        "resx");
-                                    break;
-                                case 2:
-                                    if (pair[1].Length == 0) {
-                                        Console.WriteLine(@"error: You must specify an input & outfile file name like this:");
-                                        Console.WriteLine("inFile.po,outFile.resx.");
-                                        Console.WriteLine("You passed in '{0}'.", args[i]);
-                                        return 1;
-                                    }
-                                    resInf.InputFile = Path.GetFullPath(pair[0]);
-                                    resInf.OutputFile = Path.GetFullPath(pair[1]);
-                                    break;
-                                default:
-                                    Usage();
-                                    return 1;
-                            }
-                        } else {
-                            if ((i + 1) < args.Length) {
-                                resInf.InputFile = Path.GetFullPath(args[i]);
-                                // move to next arg, since we assume that one holds
-                                // the name of the output file
-                                i++;
-                                resInf.OutputFile = Path.GetFullPath(args[i]);
-                            } else {
-                                resInf.InputFile = Path.GetFullPath(args[i]);
-                                resInf.OutputFile = Path.ChangeExtension(resInf.InputFile,
-                                    "resx");
+                        if (Directory.Exists(args[i]))
+                        {
+                            foreach (var file in Directory.GetFiles(args[i], "*.resx"))
+                            {
+                                ResourceInfo resInf = new ResourceInfo();
+                                resInf.InputFile = file;
+                                resInf.OutputFile = Path.Combine(args[i + 1], Path.GetFileName(Path.ChangeExtension(resInf.InputFile, "po")));
+                                inputFiles.Add(resInf);
                             }
                         }
-                        inputFiles.Add(resInf);
+                        else
+                        {
+                            ResourceInfo resInf = new ResourceInfo();
+                            if (compileMultiple)
+                            {
+                                string[] pair = args[i].Split(',');
+                                switch (pair.Length)
+                                {
+                                    case 1:
+                                        resInf.InputFile = Path.GetFullPath(pair[0]);
+                                        resInf.OutputFile = Path.ChangeExtension(resInf.InputFile,
+                                            "resx");
+                                        break;
+                                    case 2:
+                                        if (pair[1].Length == 0)
+                                        {
+                                            Console.WriteLine(@"error: You must specify an input & outfile file name like this:");
+                                            Console.WriteLine("inFile.po,outFile.resx.");
+                                            Console.WriteLine("You passed in '{0}'.", args[i]);
+                                            return 1;
+                                        }
+                                        resInf.InputFile = Path.GetFullPath(pair[0]);
+                                        resInf.OutputFile = Path.GetFullPath(pair[1]);
+                                        break;
+                                    default:
+                                        Usage();
+                                        return 1;
+                                }
+                            }
+                            else
+                            {
+                                if ((i + 1) < args.Length)
+                                {
+                                    resInf.InputFile = Path.GetFullPath(args[i]);
+                                    // move to next arg, since we assume that one holds
+                                    // the name of the output file
+                                    i++;
+                                    resInf.OutputFile = Path.GetFullPath(args[i]);
+                                }
+                                else
+                                {
+                                    resInf.InputFile = Path.GetFullPath(args[i]);
+                                    resInf.OutputFile = Path.ChangeExtension(resInf.InputFile,
+                                        "resx");
+                                }
+                            }
+                            inputFiles.Add(resInf);
+                        }
                         break;
                 }
             }
 
-            if (inputFiles.Count == 0) {
+            if (inputFiles.Count == 0)
+            {
                 Usage();
                 return 1;
             }
 
-            foreach (ResourceInfo res in inputFiles) {
+            foreach (ResourceInfo res in inputFiles)
+            {
                 int ret = CompileResourceFile(res.InputFile, res.OutputFile, useSourcePath, options);
                 if (ret != 0)
                     return ret;
