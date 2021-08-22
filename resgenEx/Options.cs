@@ -34,10 +34,13 @@ namespace resgenEx
         /// </summary>
         public bool FormatFlags;
 
+        public string MsgCtxt;
+
         public Options(CommentOptions aComments, bool aFormatFlags)
         {
             Comments = aComments;
             FormatFlags = aFormatFlags;
+            MsgCtxt = null;
         }
     }
 }

@@ -8,7 +8,7 @@ namespace resgenEx.FileFormats
     using System.Reflection;
     using System.Resources;
     using System.Text;
-using System.Security.Principal;
+    using System.Security.Principal;
 
     class PoResourceWriter : IResourceWriter
     {
@@ -40,7 +40,8 @@ using System.Security.Principal;
             // the header, otherwise msgmerge will screw up when passed a 0 length file (I think
             // it screws up because without the header it makes bad judgements about the character
             // encoding it's supposed to be merging using).
-            if (!headerWritten) {
+            if (!headerWritten)
+            {
                 headerWritten = true;
                 WriteHeader();
             }
@@ -61,8 +62,10 @@ using System.Security.Principal;
             // the empty string is used on the first line, to allow better alignment of the multi-line string to follow
             if (ns.Contains("\n")) ebuilder.Append("\"\r\n\"");
 
-            foreach (char c in ns) {
-                switch (c) {
+            foreach (char c in ns)
+            {
+                switch (c)
+                {
                     case '"':
                     case '\\':
                         ebuilder.Append('\\');
@@ -128,69 +131,88 @@ using System.Security.Principal;
             AddResource(ResourceItem.Get(name, value));
         }
 
-        public virtual void AddResource(ResourceItem item) 
-        {        
-            if (!headerWritten) {
+        public virtual void AddResource(ResourceItem item)
+        {
+            if (!headerWritten)
+            {
                 headerWritten = true;
                 WriteHeader();
             }
 
 
-            if (options.Comments != CommentOptions.writeNoComments) {
+            if (options.Comments != CommentOptions.writeNoComments)
+            {
 
-                if (item is PoItem) {
+                if (item is PoItem)
+                {
                     // We can preserve the comments exactly as they were
                     s.Write(((PoItem)item).Metadata_PoRawComments);
 
-                } else {
+                }
+                else
+                {
                     // if FullComments is set, then store the original message in a rawComments
                     // so the file could be converted into a .pot file (.po template file)
                     // without losing information.
                     string originalMessage = item.Metadata_OriginalValue;
                     string sourceReference = item.Metadata_OriginalSource;
 
-                    if (options.Comments == CommentOptions.writeFullComments) {
+                    if (options.Comments == CommentOptions.writeFullComments)
+                    {
                         if (String.IsNullOrEmpty(originalMessage)) originalMessage = item.Value;
                         if (String.IsNullOrEmpty(sourceReference)) sourceReference = SourceFile;
 
-                        if (item.Metadata_OriginalSourceLine > 0) {
+                        if (item.Metadata_OriginalSourceLine > 0)
+                        {
                             if (!String.IsNullOrEmpty(sourceReference)) sourceReference += ", ";
                             sourceReference += "line " + item.Metadata_OriginalSourceLine;
                         }
-                    } else {
+                    }
+                    else
+                    {
                         // Don't include automatically generated comments such as file reference
                         sourceReference = null;
                     }
 
-                    if (!String.IsNullOrEmpty(item.Metadata_Comment)) {
+                    if (!String.IsNullOrEmpty(item.Metadata_Comment))
+                    {
                         // "#." in a .po file indicates an extracted rawComments
                         s.WriteLine("#. {0}", EscapeComment(item.Metadata_Comment, '.'));
                         if (!String.IsNullOrEmpty(originalMessage)) s.WriteLine("#. "); // leave an empty line between this rawComments and when we list the originalMessage
                     }
 
-                    if (!String.IsNullOrEmpty(originalMessage)) {
+                    if (!String.IsNullOrEmpty(originalMessage))
+                    {
                         // "#." in a .po file indicates an extracted rawComments
-                        if (originalMessage.Contains("\n")) {
+                        if (originalMessage.Contains("\n"))
+                        {
                             // Start multi-line messages indented on a new line, and have each new line in the message indented
                             s.WriteLine(ResGen.cOriginalMessageComment_Prefix + "\n#.    " + EscapeComment(originalMessage, '.', 4));
-                        } else {
+                        }
+                        else
+                        {
                             s.WriteLine(ResGen.cOriginalMessageComment_Prefix + EscapeComment(originalMessage, '.', 4));
                         }
                     }
 
-                    if (!String.IsNullOrEmpty(sourceReference)) {
+                    if (!String.IsNullOrEmpty(sourceReference))
+                    {
                         // "#:" in a .po file indicates a code reference rawComments, such as the line of source code the 
                         // string is used in, currently PoResourceWriter just inserts the source file name though.
                         s.WriteLine("#: {0}", EscapeComment(sourceReference, '.'));
                     }
 
-                    if (options.FormatFlags && (item.Metadata_Flags & TranslationFlags.csharpFormatString) != 0) {
-                        s.WriteLine("#, csharp-format");                        
+                    if (options.FormatFlags && (item.Metadata_Flags & TranslationFlags.csharpFormatString) != 0)
+                    {
+                        s.WriteLine("#, csharp-format");
                     }
                 }
             }
 
             string value = WriteValuesAsBlank() ? String.Empty : Escape(item.Value);
+
+            if (!string.IsNullOrWhiteSpace(options.MsgCtxt))
+                s.WriteLine("msgctxt \"{0}\"", Escape(options.MsgCtxt));
 
             s.WriteLine("msgid \"{0}\"", Escape(item.Name));
             s.WriteLine("msgstr \"{0}\"", value);
@@ -200,7 +222,8 @@ using System.Security.Principal;
         void WriteHeader()
         {
             s.WriteLine("# This file was generated by " + ResGen.cProgramNameShort + " " + ResGen.ProgramVersion);
-            if (!String.IsNullOrEmpty(SourceFile)) {
+            if (!String.IsNullOrEmpty(SourceFile))
+            {
                 s.WriteLine("#");
                 s.WriteLine("# Converted to PO from:");
                 s.WriteLine("#   " + sourceFile);
@@ -225,7 +248,7 @@ using System.Security.Principal;
             s.WriteLine("\"Language-Team: English\\n\"");
             s.WriteLine("\"Report-Msgid-Bugs-To: \\n\"");
             s.WriteLine("\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"");
-            
+
 
             s.WriteLine();
         }

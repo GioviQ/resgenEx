@@ -342,7 +342,12 @@ Options:
 
                         options.FormatFlags = true;
                         break;
+                    case "/msgctxt":
+                    case "-msgctxt":
+                        i++;
 
+                        options.MsgCtxt = args[i];
+                        break;                        
                     default:
                         if (!IsFileArgument(args[i]))
                         {
