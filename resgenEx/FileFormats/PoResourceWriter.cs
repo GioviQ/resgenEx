@@ -5,10 +5,9 @@ namespace resgenEx.FileFormats
 {
     using System;
     using System.IO;
-    using System.Reflection;
     using System.Resources;
-    using System.Text;
     using System.Security.Principal;
+    using System.Text;
 
     class PoResourceWriter : IResourceWriter
     {
@@ -60,7 +59,8 @@ namespace resgenEx.FileFormats
             ebuilder.Length = 0;
 
             // the empty string is used on the first line, to allow better alignment of the multi-line string to follow
-            if (ns.Contains("\n")) ebuilder.Append("\"\r\n\"");
+            if (ns.Contains("\n"))
+                ebuilder.Append("\"\r\n\"");
 
             foreach (char c in ns)
             {
@@ -75,10 +75,10 @@ namespace resgenEx.FileFormats
                         ebuilder.Append("\\a");
                         break;
                     case '\n':
-                        ebuilder.Append("\\n\"\r\n\"");
+                        ebuilder.Append("\"\r\n\"");
                         break;
                     case '\r':
-                        ebuilder.Append("\\r");
+                        //ebuilder.Append("\\r");
                         break;
                     default:
                         ebuilder.Append(c);
