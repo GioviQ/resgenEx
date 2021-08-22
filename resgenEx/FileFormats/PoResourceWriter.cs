@@ -8,6 +8,7 @@ namespace resgenEx.FileFormats
     using System.Resources;
     using System.Security.Principal;
     using System.Text;
+    using System.Text.RegularExpressions;
 
     class PoResourceWriter : IResourceWriter
     {
@@ -15,6 +16,7 @@ namespace resgenEx.FileFormats
         Options options;
         bool headerWritten;
         string sourceFile = null;
+        Regex regexCultureFromFileName = new Regex(@"\.(\w+)\.resx");
 
         /// <summary>
         /// Override this in subclass if you want to write a .pot file instead of a .po file
@@ -245,6 +247,14 @@ namespace resgenEx.FileFormats
             if (slashPos >= 0 && slashPos < usersIdentity.Length) usersIdentity = usersIdentity.Substring(slashPos + 1); // Drop the domain name from the user name, if it's present
             s.WriteLine("\"Last-Translator: " + Escape(usersIdentity) + " <EMAIL@ADDRESS>\\n\"");
 
+            var fileName = Path.GetFileName(sourceFile);
+
+            var culture = "en-US";
+
+            if (regexCultureFromFileName.IsMatch(fileName))
+                culture = regexCultureFromFileName.Match(fileName).Groups[1].Value;
+
+            s.WriteLine($"\"Language: {culture}\\n\"");
             s.WriteLine("\"Language-Team: English\\n\"");
             s.WriteLine("\"Report-Msgid-Bugs-To: \\n\"");
             s.WriteLine("\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"");
